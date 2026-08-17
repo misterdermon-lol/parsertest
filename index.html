@@ -71,42 +71,48 @@
     tg.expand(); // Разворачиваем окно на весь экран
   }
 
-  async function sendData() {
-    const msg = document.getElementById('msg').value.trim();
-    const status = document.getElementById('status');
-    const btn = document.getElementById('submitBtn');
-    const webhookUrl = 'https://misterdermon.app.n8n.cloud/webhook/21501b81-de3b-4431-9644-8eb286c5965f';
+async function sendData() {
+  const msg = document.getElementById('msg').value.trim();
+  const status = document.getElementById('status');
+  const btn = document.getElementById('submitBtn');
+  const webhookUrl = 'https://misterdermon.app.n8n.cloud/webhook/21501b81-de3b-4431-9644-8eb286c5965f';
 
-    if (!msg) {
-      status.innerText = '⚠️ Введите текст заявки';
-      status.style.color = '#f59e0b';
-      return;
-    }
+  if (!msg) {
+    status.innerText = '⚠️ Введите текст заявки';
+    status.style.color = '#f59e0b';
+    return;
+  }
 
-    btn.disabled = true;
-    status.innerText = '⏳ Отправка...';
-    status.style.color = '#666';
+  btn.disabled = true;
+  status.innerText = '⏳ Отправка...';
+  status.style.color = '#666';
 
-    try {
-      await fetch(webhookUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=UTF-8' },
-        body: JSON.stringify({ message: msg })
-      });
+  try {
+    const res = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json' 
+      },
+      body: JSON.stringify({ message: msg })
+    });
 
+    if (res.ok) {
       status.innerText = '✅ Заявка принята!';
       status.style.color = '#10b981';
-
-      // Закрываем окно Mini App через 1.5 секунды
+      document.getElementById('msg').value = '';
       setTimeout(() => {
-        if (tg) tg.close();
+        if (window.Telegram?.WebApp) window.Telegram.WebApp.close();
       }, 1500);
-    } catch (e) {
-      status.innerText = '❌ Ошибка отправки';
-      status.style.color = '#ef4444';
-      btn.disabled = false;
+    } else {
+      throw new Error('Server error');
     }
+  } catch (e) {
+    status.innerText = '❌ Ошибка отправки';
+    status.style.color = '#ef4444';
+  } finally {
+    btn.disabled = false;
   }
+}
 </script>
 </body>
 </html>
